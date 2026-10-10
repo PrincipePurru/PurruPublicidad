@@ -81,7 +81,14 @@ function PublicarSitio {
  # La carpeta imagenes es la fuente editable desde GitHub. Actions regenera el sitio al cambiarla.
  $sources=Join-Path $base 'imagenes';[IO.Directory]::CreateDirectory($sources)|Out-Null
  $wanted=@(Get-ChildItem -LiteralPath $base -Filter 'cuadro-*.jpg' -File)
- foreach($f in Get-ChildItem -LiteralPath $sources -File){if($f.BaseName -match '^Cuadro (\d+)$'){$n=[int]$Matches[1];if(!(Test-Path -LiteralPath (Join-Path $base ('cuadro-{0:00}.jpg' -f $n)))){Remove-Item -LiteralPath $f.FullName}}}
+ foreach($f in Get-ChildItem -LiteralPath $sources -File){
+  if($f.Extension -match '^\.(png|jpg|jpeg|bmp)$'){
+   # Esta carpeta Git contiene copias publicadas, no originales: reconstruir su lista exacta.
+   $keep=$false
+   if($f.BaseName -match '^Cuadro (\d+)$'){$n=[int]$Matches[1];$keep=$f.Name -ceq ('Cuadro '+$n+'.jpg') -and (Test-Path -LiteralPath (Join-Path $base ('cuadro-{0:00}.jpg' -f $n)))}
+   if(!$keep){Remove-Item -LiteralPath $f.FullName}
+  }
+ }
  foreach($f in $wanted){$n=[int]([regex]::Match($f.BaseName,'\d+').Value);Copy-Item -LiteralPath $f.FullName -Destination (Join-Path $sources ('Cuadro '+$n+'.jpg')) -Force}
  [IO.File]::WriteAllText((Join-Path $sources '.gitkeep'),'',$utf8)
  $toolDir=Join-Path $base '.tools';$flowDir=Join-Path $base '.github\workflows'
