@@ -1,3 +1,8 @@
 .tools/Sitio/
 .tools/asignaciones-locales.json
 .tools/Preparado-*/
+/cuadro-*.jpg
+/estado.txt
+/galeria.json
+/index.html
+/.nojekyll

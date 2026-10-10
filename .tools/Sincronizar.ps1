@@ -89,11 +89,12 @@ function PublicarSitio {
  Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Sincronizar.ps1') -Destination (Join-Path $toolDir 'Sincronizar.ps1') -Force
  Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'galeria.html') -Destination (Join-Path $toolDir 'galeria.html') -Force
  Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'pages.yml') -Destination (Join-Path $flowDir 'pages.yml') -Force
- [IO.File]::WriteAllText((Join-Path $base '.gitignore'),".tools/Sitio/`n.tools/asignaciones-locales.json`n.tools/Preparado-*/`n",$utf8)
+ if(Test-Path -LiteralPath (Join-Path $PSScriptRoot 'README-GitHub.md')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'README-GitHub.md') -Destination (Join-Path $base 'README.md') -Force}
+ [IO.File]::WriteAllText((Join-Path $base '.gitignore'),".tools/Sitio/`n.tools/asignaciones-locales.json`n.tools/Preparado-*/`n/cuadro-*.jpg`n/estado.txt`n/galeria.json`n/index.html`n/.nojekyll`n",$utf8)
  # Si se edito desde GitHub, detener antes de reemplazar cambios de otra fuente.
  Git -Argumentos @('fetch','origin')
  $remote=& $git -C $base rev-parse --verify origin/main 2>$null
- if($LASTEXITCODE -eq 0){$local=& $git -C $base rev-parse HEAD;if($remote -ne $local){throw 'Hay cambios hechos desde GitHub. No se sobrescribieron. Usa Recuperar cambios de GitHub antes de volver a publicar desde PC.'}}
+ if($LASTEXITCODE -eq 0){& $git -C $base merge-base --is-ancestor origin/main HEAD;if($LASTEXITCODE -ne 0){throw 'Hay cambios hechos desde GitHub. No se sobrescribieron. Usa Recuperar cambios de GitHub antes de volver a publicar desde PC.'}}
  # No sobrescribir cambios remotos. Si hay divergencia se conserva todo y se pide revisar.
  Git -Argumentos @('add','--all');$changes=& $git -C $base status --porcelain
  if($changes){Git -Argumentos @('commit','-m','Actualizar cuadros de PurruPublicidad')}
